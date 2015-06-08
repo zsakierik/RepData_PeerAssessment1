@@ -1,29 +1,32 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 Include Packages
-```{r}
+
+```r
 library(ggplot2)
 ```
 
+```
+## Warning: package 'ggplot2' was built under R version 3.1.3
+```
+
 ##Loading and preprocessing the data
-```{r}
+
+```r
 data <- read.csv("activity.csv", header = TRUE, sep = ",")
 data$date <- as.Date(data$date, format="%Y-%m-%d")
 ```
 
 ##What is mean total number of steps taken per day?
 - The data transform 
-```{r}
+
+```r
 dailyStep <- aggregate(steps ~ date, data, sum, na.rm = TRUE)
 ```
 
 - Histogram of the total number of steps taken each day
-```{r}
+
+```r
 g1 <- ggplot(dailyStep, aes(date,steps,  fill = date))
 g1 <- g1 + geom_bar(stat="identity")
 g1 <- g1 + labs(x = "Date", y = "Steps", title = "Total number of steps per day")
@@ -32,21 +35,37 @@ g1 <- g1 + geom_hline(aes(yintercept=mean(dailyStep$steps, na.rm = TRUE)),
 g1
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
 
 - Report the mean and median total number of steps taken per day
-```{r}
+
+```r
 mean(dailyStep$steps, na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(dailyStep$steps, na.rm=TRUE)
+```
+
+```
+## [1] 10765
 ```
 
 ##What is the average daily activity pattern?
 - The data transform 
-```{r}
+
+```r
 intervalSteps <- aggregate(steps ~ interval, data, mean)
 ```
 
 - Time series plot of the 5-minute interval
-```{r}
+
+```r
 g2 <- ggplot(intervalSteps, aes(interval,steps))
 g2 <- g2 + geom_line()
 g2 <- g2 + labs(x = "Interval", y = "Steps", 
@@ -54,22 +73,39 @@ g2 <- g2 + labs(x = "Interval", y = "Steps",
 g2
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+
 - Report the maximum number of steps
-```{r}
+
+```r
 intervalSteps[which.max(intervalSteps$steps),]
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 
 ##Imputing missing values
 
 - Report the total number of missing values in the dataset
-```{r}
+
+```r
 sum(is.na(data$steps))
+```
+
+```
+## [1] 2304
+```
+
+```r
 intervalStepsMean <- aggregate(steps ~ interval, data, mean)
 ```
 
 - Filling in all of the missing values in the dataset
 The function replacing missing values with the mean.
-```{r}
+
+```r
 setNAsStepValues <- function(step, interval){
   if(is.na(step)){
     intervalStepsMean[which(intervalStepsMean$interval == interval),2]
@@ -81,7 +117,8 @@ setNAsStepValues <- function(step, interval){
 
 
 - The new dataset that is equal to the original dataset but with the missing data filled in
-```{r}
+
+```r
 noNaData <- data
 for(i in 1:nrow(noNaData)){
   noNaData$steps[i] <- setNAsStepValues(noNaData$steps[i], 
@@ -93,7 +130,8 @@ dailyStep2 <- aggregate(steps ~ date, noNaData, sum, na.rm = TRUE)
 
 
 - Histogram of the total number of steps taken each day, when dataset no contain missing values
-```{r}
+
+```r
 g3 <- ggplot(dailyStep2, aes(date,steps,  fill = date))
 g3 <- g3 + geom_bar(stat="identity")
 g3 <- g3 + labs(x = "Date", y = "Steps", title = "Total number of steps per day")
@@ -102,26 +140,42 @@ g3 <- g3 + geom_hline(aes(yintercept=mean(dailyStep2$steps, na.rm = TRUE)),
 g3
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+
 - Report the mean and median total number of steps taken per day, when dataset no contain missing values
-```{r}
+
+```r
 mean(dailyStep2$steps, na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(dailyStep2$steps, na.rm=TRUE)
 ```
 
-The original dataset mean and median are `r mean(dailyStep$steps, na.rm = TRUE)` and `r median(dailyStep$steps, na.rm = TRUE)`. 
-The difference between the mean values of `r mean(dailyStep$steps, na.rm = TRUE) - mean(dailyStep2$steps, na.rm = TRUE)`. 
-The difference between the median values of `r median(dailyStep$steps, na.rm = TRUE) - median(dailyStep2$steps, na.rm = TRUE)`.
+```
+## [1] 10766.19
+```
+
+The original dataset mean and median are 1.0766189\times 10^{4} and 10765. 
+The difference between the mean values of 0. 
+The difference between the median values of -1.1886792.
 
 
 ##Are there differences in activity patterns between weekdays and weekends?
 - New factor variable in the dataset with day of week
-```{r}
+
+```r
 weekData <- data
 weekData$dayType <- weekdays(weekData$date)
 ```
 
 The function replacing a day of the week values (weekend or weekdays). Use the Hungarian days.
-```{r}
+
+```r
 setDayType <- function(date){
   weekdays <- c("hétfő","kedd","szerda","csütörtök","péntek")
   if(date %in% weekdays){
@@ -133,7 +187,8 @@ setDayType <- function(date){
 ```
 
 - Replacing a day of the week values
-```{r}
+
+```r
 for(i in 1:nrow(weekData)){
   weekData$dayType[i] <- setDayType(weekData$dayType[i])
 }
@@ -144,10 +199,13 @@ intervalStepsWeek <- aggregate(steps ~ interval + dayType,
 ```
 
 - Panel plot containing a time series plot of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days 
-```{r}
+
+```r
 g4 <- ggplot(intervalStepsWeek, aes(interval, steps)) 
 g4 <- g4 + geom_line() + facet_grid(dayType ~ .) 
 g4 <- g4 + labs(x = "Interval", y = "Steps", 
               title = "Average daily activity pattern")
 g4
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-17-1.png) 
